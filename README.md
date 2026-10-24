@@ -1,8 +1,7 @@
 # FrameFlow
 
 **在浏览器本地把 PNG 序列帧和常见动画素材转换为 GIF、WebP、APNG、PNG 序列 ZIP 或 YYEVA 双通道 MP4。**导入、预览和编码都在浏览器中完成，图片和视频帧不会上传到转换服务器。
-
-![FrameFlow 标识](assets/frameflow-mark.png)
+<img src="assets/frameflow-mark.png" alt="FrameFlow 标识" width="180">
 
 > 在线体验：[frameflow.tunetianyu.site](https://frameflow.tunetianyu.site)
 
