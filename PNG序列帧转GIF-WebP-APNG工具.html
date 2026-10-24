@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="在线转换 PNG 序列帧、GIF、WebP、APNG、SVGA 与 YYEVA 双通道 MP4，导出 GIF、WebP、APNG、PNG ZIP 或 H.264 双通道 MP4。文件在浏览器本地处理，不上传。">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#f3f3f1">
+<meta name="ffmpeg-wasm-parts" content="ffmpeg-core.wasm.part-00,ffmpeg-core.wasm.part-01,ffmpeg-core.wasm.part-02">
+<meta name="ffmpeg-cache-version" content="2390efa7fb66e7e42dbae15427571a5ffc96b829480904c30f471f0a78967f61">
+<title>PNG序列帧转 GIF/WebP/APNG 工具｜YYEVA 双通道 MP4 - FrameFlow</title>
+<link rel="stylesheet" href="css/frameflow.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#home" aria-label="FrameFlow，返回首页">
+      <span class="mark" aria-hidden="true">
+        <img src="assets/frameflow-mark.png" alt="">
+      </span>
+      <div class="brand-text">
+        <span class="brand-name">FrameFlow</span>
+      </div>
+    </a>
+    <span class="badge" id="localBadge" aria-label="解析模块 · 待机"><span class="dot" aria-hidden="true"></span><span class="tx" id="localBadgeText">解析模块 · 待机</span></span>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="banner" id="fileWarn">
+    ⚠️ 检测到你正用本地文件（<code>file://</code>）打开本工具。浏览器安全策略会阻止其运行所需的 Web Worker，导致导出失败。<br>
+    请通过<b>在线链接</b>打开：<a href="https://frameflow.tunetianyu.site" target="_blank" rel="noopener">https://frameflow.tunetianyu.site</a>
+  </div>
+
+  <main id="homePage" class="page-view">
+  <div class="hero home-hero">
+    <h1>动画文件与 PNG 序列帧<br><span class="accent">自由转换</span></h1>
+    <p>导入 PNG 序列帧、GIF / WebP / APNG、SVGA 动画或双通道 MP4，转换格式或打包为 PNG 序列 ZIP。全程浏览器本地处理，图片和视频不上传。</p>
+  </div>
+
+  <section class="stat-wall" id="statWall" role="button" tabindex="0" aria-label="FrameFlow 累计数据，点击查看统计说明">
+    <div class="stat-metric" id="statExportsItem">
+      <span class="stat-label">累计导出文件：</span>
+      <strong class="stat-num" id="statExports"><span class="stat-skel" aria-hidden="true"></span></strong>
+      <span class="stat-unit">次</span>
+    </div>
+    <span class="stat-div" id="statDivider" aria-hidden="true"></span>
+    <div class="stat-metric">
+      <span class="stat-label">累计处理帧数：</span>
+      <strong class="stat-num" id="statFrames"><span class="stat-skel" aria-hidden="true"></span></strong>
+    </div>
+  </section>
+
+  <div id="homeUploadMount" class="upload-mount">
+
+  <!-- 步骤① 上传 -->
+  <section class="card" id="upload">
+    <div class="card-head">
+      <span class="step">01</span>
+      <div>
+        <h2>导入动画素材</h2>
+      </div>
+    </div>
+    <div class="drop" id="drop" role="button" tabindex="0" aria-label="选择 PNG 序列帧、动画文件、SVGA 或双通道 MP4 文件">
+      <span class="drop-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/></svg>
+      </span>
+      <p class="drop-title">拖拽 <b>PNG 序列、GIF / WebP / APNG / SVGA 动画或双通道 MP4</b> 到此处</p>
+      <div class="btnrow">
+        <button type="button" id="pickFolder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          选择文件夹
+        </button>
+        <button type="button" id="pickFiles">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          选择文件
+        </button>
+        <input type="file" id="folderInput" webkitdirectory directory multiple>
+        <input type="file" id="filesInput" multiple accept=".png,.gif,.webp,.apng,.svga,.mp4,image/png,image/gif,image/webp,video/mp4">
+      </div>
+      <div class="mp4-import-panel" id="mp4ImportPanel" hidden>
+        <div class="mp4-import-copy">
+          <strong>双通道 MP4</strong>
+          <span id="mp4ImportFileName">请选择一个左右并排的视频</span>
+        </div>
+        <label class="mp4-alpha-select" for="mp4AlphaSide">
+          <span>Alpha 通道在</span>
+          <select id="mp4AlphaSide">
+            <option value="auto">自动判断</option>
+            <option value="left">左侧</option>
+            <option value="right">右侧</option>
+          </select>
+        </label>
+        <button type="button" class="mp4-process-button" id="mp4Process">开始解析</button>
+        <p class="mp4-import-hint">自动判断不确定时，请按视频中的灰度蒙版位置手动选择。将还原 AE 预乘颜色，降低透明边缘发黑；H.264 画面仍可能有轻微压缩损失。</p>
+      </div>
+    </div>
+    <div class="upload-state" id="uploadState">
+      <div class="upload-progress" id="uploadProgress" role="progressbar" aria-label="导入进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="uploadProgressBar"></i></div>
+      <div class="upload-status" id="uploadStatus" role="status" aria-live="polite"></div>
+    </div>
+  </section>
+  </div>
+  </main>
+
+  <main id="editorPage" class="page-view" hidden>
+    <div class="editor-heading">
+      <div>
+        <span class="eyebrow">FRAMEFLOW WORKSPACE</span>
+        <h1>动画工作区</h1>
+        <p>预览序列帧，调整参数并导出动画。</p>
+      </div>
+      <span class="editor-local-note">文件仅在此设备本地处理</span>
+    </div>
+    <div id="editorUploadMount" class="upload-mount"></div>
+    <div class="editor-layout">
+      <section class="card frame-card" aria-label="序列帧内容">
+        <div class="card-head">
+          <span class="step">01</span>
+          <div><h2>帧序列</h2></div>
+        </div>
+        <div id="framesPanel">
+          <div class="summary" id="summary"></div>
+          <div class="diagnostics" id="diagnostics" role="status" aria-live="polite" hidden></div>
+          <div class="grid" id="grid"></div>
+        </div>
+      </section>
+
+  <!-- 步骤② 设置 + 导出（上传后显示） -->
+  <section class="card" id="configCard">
+    <div class="card-head">
+      <span class="step">02</span>
+      <div>
+        <h2>设置参数并导出</h2>
+      </div>
+    </div>
+    <div class="form">
+      <div class="field" id="fpsField">
+        <label>帧频</label>
+        <input type="number" id="fps" value="30" min="1" max="120" step="1">
+        <span class="hint" id="fpsHint">每秒播放帧数</span>
+      </div>
+      <div class="field">
+        <label>循环次数</label>
+        <input type="number" id="loop" value="0" min="0" max="9999" step="1">
+        <span class="hint">0 = 无限循环</span>
+      </div>
+      <div class="field wide">
+        <label>输出文件名</label>
+        <input type="text" id="baseName" value="动画" maxlength="80" autocomplete="off">
+        <span class="hint">不含扩展名</span>
+      </div>
+      <div class="field wide" id="webp-quality-field">
+        <label for="webpQuality">WebP 质量</label>
+        <div class="quality-control">
+          <input type="range" id="webpQuality" min="1" max="100" value="80" step="1" aria-describedby="webpQualityHint">
+          <output class="quality-value" id="webpQualityValue" for="webpQuality">80</output>
+          <div class="quality-presets" role="group" aria-label="WebP 质量预设">
+            <button type="button" data-webp-quality="60" aria-label="轻量，质量 60" aria-pressed="false">60：轻量</button>
+            <button type="button" data-webp-quality="80" aria-label="平衡，质量 80" aria-pressed="true">80：平衡</button>
+            <button type="button" data-webp-quality="92" aria-label="高清，质量 92" aria-pressed="false">92：高清</button>
+          </div>
+        </div>
+        <span class="hint" id="webpQualityHint">仅影响 WebP</span>
+      </div>
+    </div>
+    <div class="export-btns">
+      <button type="button" class="primary" id="exGif">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        转换为 GIF
+      </button>
+      <button type="button" class="primary" id="exWebp">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        转换为 WebP
+      </button>
+      <button type="button" class="primary" id="exApng">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        转换为 APNG
+      </button>
+      <button type="button" class="primary" id="exMp4" aria-label="导出左右双通道 MP4">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m10 9 5 3-5 3zM12 5v14"/></svg>
+        导出双通道 MP4
+      </button>
+      <button type="button" class="primary" id="exPngSequence" hidden aria-label="导出 PNG 序列帧 ZIP">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        导出 PNG 序列帧
+      </button>
+    </div>
+    <div class="progress" id="progress" role="progressbar" aria-label="导出进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="progressBar"></i></div>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+    <div class="results" id="results" role="log" aria-live="polite" aria-label="已导出文件"></div>
+    <p class="note">
+      <span class="nl">• 文件须为有效 PNG 且尺寸一致；帧按相对路径自然排序（frame_2 在 frame_10 前）。</span>
+      <span class="nl">• 首次使用需联网加载编码内核（约 31MB）；成功缓存后，后续访问优先从本地读取。</span>
+      <span class="nl">• <b>GIF</b> 走调色板优化 · <b>WebP</b> 质量可调（默认 80） · <b>APNG</b> 无损；导入动画后也可导出 PNG 序列 ZIP；循环 <code>0</code> = 无限循环。</span>
+      <span class="nl">• 双通道 MP4 按 YY-MP4 格式使用 H.264 编码：左侧为预乘 RGB，右侧为灰度 Alpha，写入 YYEVA 元数据；画布宽度为原图两倍。MP4 不保留循环次数。</span>
+      <span class="nl">• 帧率说明：GIF 延迟以 1/100 秒取整（30fps 实际约 30.8fps），且浏览器 / 微信等查看器会把超过 50fps 的 GIF 强制放慢——这是查看器限制，不是导出错误；高帧率或对速度敏感时建议用 <b>WebP / APNG</b>。</span>
+    </p>
+  </section>
+    </div>
+  </main>
+</div>
+
+<footer class="site-footer" aria-label="工具信息">
+  <p>本工具由 TUNE.天宇独立开发，如有疑问可咨询微信：abc3314abc</p>
+  <p class="privacy-note">匿名统计记录来源格式、导出格式、帧数与时间；不收集文件名或图像内容。</p>
+  <a class="home-link" href="https://www.xiaohongshu.com/user/profile/60025c680000000001007310" target="_blank" rel="noopener noreferrer">访问主页</a>
+</footer>
+
+<button class="feedback-open" id="feedbackOpen" type="button" aria-haspopup="dialog" aria-controls="feedbackDialog">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-6.5a7.5 7.5 0 1 1 17-3Z"/><path d="M8 11h8M8 14h5"/></svg>
+  <span>反馈</span>
+</button>
+
+<dialog class="feedback-dialog" id="feedbackDialog" aria-labelledby="feedbackTitle">
+  <form class="feedback-form" id="feedbackForm">
+    <div class="feedback-heading"><div><span class="eyebrow">YOUR VOICE MATTERS</span><h2 id="feedbackTitle">告诉我们你的想法</h2></div><button class="feedback-close" id="feedbackClose" type="button" aria-label="关闭"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>
+    <p class="feedback-intro">无需登录。请描述你遇到的问题，或希望 FrameFlow 增加的功能。</p>
+    <label class="feedback-field">反馈类型<select name="category" required><option value="suggestion">功能建议</option><option value="problem">问题反馈</option></select></label>
+    <label class="feedback-field">内容<textarea name="content" required minlength="5" maxlength="3000" rows="6" placeholder="请尽量描述具体情况（5–3000 字）"></textarea></label>
+    <label class="feedback-field"><span>微信号 <span class="feedback-optional">· 选填，方便我们回复</span></span><input name="contact" type="text" maxlength="100" autocomplete="off" placeholder="请输入微信号"></label>
+    <label class="feedback-trap" aria-hidden="true">网站<input name="website" tabindex="-1" autocomplete="off"></label>
+    <div class="feedback-actions"><span class="feedback-status" id="feedbackStatus" role="status" aria-live="polite"></span><button class="feedback-submit" id="feedbackSubmit" type="submit">提交反馈</button></div>
+    <small class="feedback-privacy">微信号仅在你填写后保存，用于回复反馈；不会收集图片、文件名或登录账号。</small>
+  </form>
+</dialog>
+
+<div class="preview-overlay" id="previewOverlay" hidden>
+  <div class="preview-dialog" id="previewDialog" role="dialog" aria-modal="false" aria-labelledby="previewTitle">
+    <div class="preview-head">
+      <div class="preview-title-row">
+        <div class="preview-title" id="previewTitle">动画预览</div>
+        <span class="preview-duration" id="previewDuration">—</span>
+      </div>
+      <button type="button" class="preview-close" id="previewClose" aria-label="关闭预览">×</button>
+    </div>
+    <div class="preview-stage" id="previewStage">
+      <canvas id="previewCanvas" aria-label="动画预览画面"></canvas>
+    </div>
+    <div class="preview-controls">
+      <button type="button" class="preview-play" id="previewPlay">暂停</button>
+      <input class="preview-seek" id="previewSeek" type="range" min="0" max="0" value="0" step="1" aria-label="预览帧进度">
+      <span class="preview-frame" id="previewFrame">0 / 0</span>
+    </div>
+    <p class="preview-note" id="previewNote">预览使用缩略图，导出仍使用原始 PNG</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script defer src="libs/svga/svga.min.js"></script>
+<script defer src="libs/ffmpeg/ffmpeg.js"></script>
+<script defer src="js/app-state.js"></script>
+<script defer src="js/file-import.js"></script>
+<script defer src="js/animation-formats.js"></script>
+<script defer src="js/ffmpeg-runtime.js"></script>
+<script defer src="js/mp4-import.js"></script>
+<script defer src="js/animated-import.js"></script>
+<script defer src="js/svga-import.js"></script>
+<script defer src="js/preview.js"></script>
+<script defer src="js/counters.js"></script>
+<script defer src="js/feedback.js"></script>
+<script defer src="js/export.js"></script>
+<script defer src="js/love-fallback.js"></script>
+<script defer src="js/app.js"></script>
+</body>
+</html>
